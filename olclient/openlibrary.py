@@ -48,7 +48,7 @@ class OpenLibrary:
         >>> book.save(comment="correcting title")
     """
 
-    VALID_IDS = ['isbn_10', 'isbn_13', 'lccn', 'ocaid']
+    VALID_IDS = ['isbn_10', 'isbn_13', 'lccn', 'ocaid','']
     BACKOFF_KWARGS = {
         'wait_gen': backoff.expo,
         'exception': requests.exceptions.RequestException,
@@ -754,15 +754,12 @@ class OpenLibrary:
     @classmethod
     def get_primary_identifier(cls, book):
         """XXX needs docs"""
-        id_name, id_value = None, None
+        id_name, id_value = "", ""
         for valid_key in cls.VALID_IDS:
             if valid_key in book.identifiers:
                 id_name = valid_key
                 id_value = book.identifiers[valid_key][0]
                 break
-
-        if not (id_name and id_value):
-            raise ValueError("ISBN10/13 or LCCN required")
         return id_name, id_value
 
     def create_book(self, book, work_olid=None, debug=False):
@@ -832,16 +829,26 @@ class OpenLibrary:
         url = self.base_url + '/books/add'
         if work_olid:
             url += f'?work=/works/{work_olid}'
-        data = {
-            "title": title,
-            "author_name": author_name,
-            "author_key": author_key,
-            "publish_date": publish_date,
-            "publisher": publisher,
-            "id_name": id_name,
-            "id_value": id_value,
-            "_save": "",
-        }
+        if id_name:
+            data = {
+                "title": title,
+                "author_name": author_name,
+                "author_key": author_key,
+                "publish_date": publish_date,
+                "publisher": publisher,
+                "id_name": id_name,
+                "id_value": id_value,
+                "_save": "",
+            }
+        else:
+            data = {
+                "title": title,
+                "author_name": author_name,
+                "author_key": author_key,
+                "publish_date": publish_date,
+                "publisher": publisher,
+                "_save": "",
+            }
         if debug:
             return data
 
